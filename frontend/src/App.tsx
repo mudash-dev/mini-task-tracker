@@ -6,21 +6,20 @@ import type { Task } from "./types/task";
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [editingTask, setEditingTask] = useState<Task | null>(
-    null
-  );
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const loadTasks = async () => {
     try {
+      setLoading(true);
       setError("");
 
       const data = await getTasks();
 
       setTasks(data);
     } catch (error) {
-      setError("Failed to load tasks");
+      setError(error instanceof Error ? error.message : "Failed to load tasks");
     } finally {
       setLoading(false);
     }
@@ -32,7 +31,7 @@ function App() {
 
   const handleDelete = async (id: string) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this task?"
+      "Are you sure you want to delete this task?",
     );
 
     if (!confirmed) {
@@ -42,11 +41,7 @@ function App() {
     try {
       await deleteTask(id);
 
-      setTasks((currentTasks) =>
-        currentTasks.filter(
-          (task) => task.id !== id
-        )
-      );
+      setTasks((currentTasks) => currentTasks.filter((task) => task.id !== id));
     } catch (error) {
       setError("Failed to delete task");
     }
@@ -73,11 +68,7 @@ function App() {
       </header>
 
       <section className="dashboard-section">
-        <h2>
-          {editingTask
-            ? "Edit Task"
-            : "Create New Task"}
-        </h2>
+        <h2>{editingTask ? "Edit Task" : "Create New Task"}</h2>
 
         <TaskForm
           editingTask={editingTask}
@@ -91,25 +82,21 @@ function App() {
           <h2>Your Tasks</h2>
 
           <span>
-            {tasks.length}{" "}
-            {tasks.length === 1
-              ? "task"
-              : "tasks"}
+            {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
           </span>
         </div>
 
         {loading ? (
-          <p>Loading tasks...</p>
+          <div className="loading-state">
+            <p>Loading tasks...</p>
+          </div>
         ) : error ? (
-          <p className="form-error">
-            {error}
-          </p>
+          <div className="error-state">
+            <p>{error}</p>
+            <button onClick={loadTasks}>Try Again</button>
+          </div>
         ) : (
-          <TaskList
-            tasks={tasks}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-          />
+          <TaskList tasks={tasks} onDelete={handleDelete} onEdit={handleEdit} />
         )}
       </section>
     </main>

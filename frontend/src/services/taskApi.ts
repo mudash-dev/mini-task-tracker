@@ -1,69 +1,64 @@
 import type { Task, TaskStatus } from "../types/task";
 
-const API_URL = "http://localhost:5000/api/tasks";
+const API_URL = `${import.meta.env.VITE_API_URL}/tasks`;
 
-export interface CreateTaskData {
+export interface TaskData {
   title: string;
   description: string;
   status: TaskStatus;
 }
 
+const handleResponse = async <T>(response: Response): Promise<T> => {
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Something went wrong");
+  }
+
+  return data;
+};
+
 export const getTasks = async (): Promise<Task[]> => {
   const response = await fetch(API_URL);
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch tasks");
-  }
-
-  return response.json();
+  return handleResponse<Task[]>(response);
 };
 
-export const createTask = async (
-  taskData: CreateTaskData
-): Promise<Task> => {
+export const createTask = async (taskData: TaskData): Promise<Task> => {
   const response = await fetch(API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(taskData)
+    body: JSON.stringify(taskData),
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create task");
-  }
-
-  return response.json();
+  return handleResponse<Task>(response);
 };
 
 export const updateTask = async (
   id: string,
-  taskData: CreateTaskData
+  taskData: TaskData,
 ): Promise<Task> => {
   const response = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(taskData)
+    body: JSON.stringify(taskData),
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update task");
-  }
-
-  return response.json();
+  return handleResponse<Task>(response);
 };
 
 export const deleteTask = async (id: string): Promise<void> => {
   const response = await fetch(`${API_URL}/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete task");
+    const data = await response.json();
+
+    throw new Error(data.message || "Failed to delete task");
   }
 };

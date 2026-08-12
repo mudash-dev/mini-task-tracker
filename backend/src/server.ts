@@ -17,6 +17,21 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/tasks", taskRoutes);
 
+app.use(
+  (
+    err: Error,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction
+  ) => {
+    console.error(err);
+
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+);
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

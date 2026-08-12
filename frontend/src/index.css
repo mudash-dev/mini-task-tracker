@@ -69,6 +69,26 @@ button {
   border: 1px solid #d1d5db;
   border-radius: 6px;
 }
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.form-actions button {
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+}
+
+.form-actions button[type="submit"] {
+  border: none;
+  background-color: #5288f5;
+}
+
+.task-actions button:hover {
+  background: #b0c5ee;
+}
 
 .task-form button {
   padding: 10px 16px;

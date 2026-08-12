@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
+import taskRoutes from "./routes/taskRoutes.js";
 
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
+
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
@@ -12,6 +14,8 @@ app.get("/api/health", (_req, res) => {
     message: "Task Tracker API running successfully",
   });
 });
+
+app.use("/api/tasks", taskRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

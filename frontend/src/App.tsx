@@ -1,122 +1,119 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from "react";
+import TaskForm from "./components/TaskForm";
+import TaskList from "./components/TaskList";
+import { deleteTask, getTasks } from "./services/taskApi";
+import type { Task } from "./types/task";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [editingTask, setEditingTask] = useState<Task | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadTasks = async () => {
+    try {
+      setError("");
+
+      const data = await getTasks();
+
+      setTasks(data);
+    } catch (error) {
+      setError("Failed to load tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this task?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteTask(id);
+
+      setTasks((currentTasks) =>
+        currentTasks.filter(
+          (task) => task.id !== id
+        )
+      );
+    } catch (error) {
+      setError("Failed to delete task");
+    }
+  };
+
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleTaskSaved = async () => {
+    setEditingTask(null);
+    await loadTasks();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTask(null);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <main className="container">
+      <header className="page-header">
+        <h1>Mini Task Tracker</h1>
+        <p>Manage your tasks in one place.</p>
+      </header>
+
+      <section className="dashboard-section">
+        <h2>
+          {editingTask
+            ? "Edit Task"
+            : "Create New Task"}
+        </h2>
+
+        <TaskForm
+          editingTask={editingTask}
+          onTaskSaved={handleTaskSaved}
+          onCancelEdit={handleCancelEdit}
+        />
+      </section>
+
+      <section className="dashboard-section">
+        <div className="section-header">
+          <h2>Your Tasks</h2>
+
+          <span>
+            {tasks.length}{" "}
+            {tasks.length === 1
+              ? "task"
+              : "tasks"}
+          </span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+
+        {loading ? (
+          <p>Loading tasks...</p>
+        ) : error ? (
+          <p className="form-error">
+            {error}
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+        ) : (
+          <TaskList
+            tasks={tasks}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+          />
+        )}
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    </main>
+  );
 }
 
-export default App
+export default App;
